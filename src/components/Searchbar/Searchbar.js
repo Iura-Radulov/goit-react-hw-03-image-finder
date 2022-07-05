@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import Notiflix from 'notiflix';
 import s from './Searchbar.module.css';
 
 class Searchbar extends Component {
@@ -11,7 +13,11 @@ class Searchbar extends Component {
   };
   handleSubmit = e => {
     e.preventDefault();
-    this.props.onSubmit(this.state.value);
+    const searcingValue = this.state.value.trim();
+    if (!searcingValue) {
+      Notiflix.Notify.info('Please write some value');
+    }
+    this.props.onSubmit(searcingValue);
     this.setState({ value: '' });
   };
   render() {
@@ -36,5 +42,9 @@ class Searchbar extends Component {
     );
   }
 }
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
 
 export default Searchbar;
