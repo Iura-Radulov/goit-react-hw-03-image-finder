@@ -13,11 +13,11 @@ class Searchbar extends Component {
   };
   handleSubmit = e => {
     e.preventDefault();
-    const searcingValue = this.state.value.trim();
-    if (!searcingValue) {
+    const searchValue = this.state.value.trim();
+    if (!searchValue) {
       Notiflix.Notify.info('Please write some value');
     }
-    this.props.onSubmit(searcingValue);
+    this.props.onSubmit(searchValue);
     this.setState({ value: '' });
   };
   render() {

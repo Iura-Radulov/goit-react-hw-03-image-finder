@@ -9,6 +9,7 @@ import Button from './Button';
 
 const API_KEY = '27514319-3f71a34bdf3e844d254f7bad1';
 axios.defaults.baseURL = 'https://pixabay.com/api/';
+const perPage = 12;
 
 export class App extends Component {
   state = {
@@ -26,16 +27,15 @@ export class App extends Component {
     if (prevState.page !== page || prevState.value !== value) {
       this.setState({ loading: true });
       this.fetchData()
-        .then(resivedData => {
-          const data = resivedData;
+        .then(data => {
           this.setState(prevState => ({
             images: [...prevState.images, ...data.hits],
             loading: false,
           }));
-          if (data.total !== data.hits.length) {
+          if (data.total >= perPage) {
             this.setState({ showLoadMore: true });
           }
-          if (data.total <= images.length + 12) {
+          if (data.total <= images.length + perPage) {
             this.setState({ showLoadMore: false });
             Notiflix.Notify.info(
               "We're sorry, but you've reached the end of search results."
@@ -46,7 +46,7 @@ export class App extends Component {
     }
   }
 
-  searchValue = inputValue => {
+  onSearch = inputValue => {
     this.setState({
       value: inputValue,
       page: 1,
@@ -59,7 +59,7 @@ export class App extends Component {
     this.setState({ loading: true });
     const { value, page } = this.state;
     const response = await axios.get(
-      `/?q=${value}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+      `/?q=${value}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${perPage}`
     );
     const responseData = await response.data;
     if (!responseData.total) {
@@ -76,9 +76,9 @@ export class App extends Component {
   };
 
   showMore = () => {
-    this.setState(prevStep => ({ page: prevStep.page + 1 }));
+    this.setState(prevState => ({ page: prevState.page + 1 }));
   };
-  handleModal = image => {
+  openModal = image => {
     this.setState({ showModal: true, largeImage: image });
   };
   closeModal = () => {
@@ -89,9 +89,9 @@ export class App extends Component {
     const { images, showModal, largeImage, loading, showLoadMore } = this.state;
     return (
       <div className="app">
-        <Searchbar onSubmit={this.searchValue} />
+        <Searchbar onSubmit={this.onSearch} />
         {images.length > 0 && (
-          <ImageGallery images={images} onModal={this.handleModal} />
+          <ImageGallery images={images} onModal={this.openModal} />
         )}
         {showModal && (
           <Modal largeImage={largeImage} closeModal={this.closeModal} />
