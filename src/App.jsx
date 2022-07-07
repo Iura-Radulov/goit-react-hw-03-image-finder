@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
-import Searchbar from './Searchbar/Searchbar';
-import axios from 'axios';
+import Searchbar from './components/Searchbar/Searchbar';
 import Notiflix from 'notiflix';
-import ImageGallery from './ImageGallery';
-import Modal from './Modal';
-import Loader from './Loader';
-import Button from './Button';
+import * as Scroll from 'react-scroll';
+import ImageGallery from './components/ImageGallery';
+import Modal from './components/Modal';
+import Loader from './components/Loader';
+import Button from './components/Button';
+import FetchData from './services/Api';
 
-const API_KEY = '27514319-3f71a34bdf3e844d254f7bad1';
-axios.defaults.baseURL = 'https://pixabay.com/api/';
 const perPage = 12;
 
 export class App extends Component {
@@ -26,16 +25,15 @@ export class App extends Component {
     const { page, value, images } = this.state;
     if (prevState.page !== page || prevState.value !== value) {
       this.setState({ loading: true });
-      this.fetchData()
+      FetchData(value, page, perPage)
         .then(data => {
           this.setState(prevState => ({
             images: [...prevState.images, ...data.hits],
             loading: false,
           }));
-          if (data.total >= perPage) {
+          if (data.total > perPage) {
             this.setState({ showLoadMore: true });
-          }
-          if (data.total <= images.length + perPage) {
+          } else if (data.total <= images.length + perPage) {
             this.setState({ showLoadMore: false });
             Notiflix.Notify.info(
               "We're sorry, but you've reached the end of search results."
@@ -55,19 +53,6 @@ export class App extends Component {
     });
   };
 
-  fetchData = async () => {
-    this.setState({ loading: true });
-    const { value, page } = this.state;
-    const response = await axios.get(
-      `/?q=${value}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${perPage}`
-    );
-    const responseData = await response.data;
-    if (!responseData.total) {
-      return Promise.reject(new Error(`No image with name ${value}`));
-    }
-    return responseData;
-  };
-
   onApiError = () => {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
@@ -77,6 +62,7 @@ export class App extends Component {
 
   showMore = () => {
     this.setState(prevState => ({ page: prevState.page + 1 }));
+    this.scrollSlowly();
   };
   openModal = image => {
     this.setState({ showModal: true, largeImage: image });
@@ -84,9 +70,19 @@ export class App extends Component {
   closeModal = () => {
     this.setState({ showModal: false });
   };
+  scrollSlowly = () => {
+    Scroll.animateScroll.scrollToBottom({
+      duration: 1500,
+      delay: 100,
+      smooth: true,
+      containerId: 'ContainerElementID',
+      offset: 50,
+    });
+  };
 
   render() {
     const { images, showModal, largeImage, loading, showLoadMore } = this.state;
+
     return (
       <div className="app">
         <Searchbar onSubmit={this.onSearch} />
